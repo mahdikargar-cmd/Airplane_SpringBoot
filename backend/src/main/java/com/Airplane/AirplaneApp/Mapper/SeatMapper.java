@@ -2,34 +2,18 @@ package com.Airplane.AirplaneApp.Mapper;
 
 import com.Airplane.AirplaneApp.DTO.SeatDTO;
 import com.Airplane.AirplaneApp.Entity.Seat;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import java.util.List;
 
-@Component
-public class SeatMapper {
-    public SeatDTO toDTO(Seat seat) {
-        return SeatDTO.builder()
-                .seatNumber(seat.getSeatNumber())
-                .available(seat.isAvailable())
-                .seatType(seat.getSeatType())
-                .position(seat.getPosition())
-                .rowNumber(seat.getRowNumber())
-                .columnLetter(seat.getColumnLetter())
-                .build();
-    }
+@Mapper(componentModel = "spring")
+public interface SeatMapper {
+    @Mapping(source = "flight.flightId", target = "flightId")
+    SeatDTO toDTO(Seat seat);
 
-    public Seat toEntity(SeatDTO dto) {
-        Seat seat = new Seat();
-        seat.setSeatNumber(dto.getSeatNumber());
-        seat.setAvailable(dto.isAvailable());
-        seat.setSeatType(dto.getSeatType());
+    @Mapping(source = "flightId", target = "flight.flightId")
+    Seat toEntity(SeatDTO seatDTO);
 
-        // مقداردهی position برای جلوگیری از خطای not-null
-        seat.setPosition(dto.getPosition() != null ? dto.getPosition() : "UNKNOWN");
-        seat.setStatus("AVAILABLE");
-        seat.setRowNumber(dto.getRowNumber());
-        seat.setColumnLetter(dto.getColumnLetter());
-
-        return seat;
-    }
-
+    List<SeatDTO> toDTOList(List<Seat> seats);
+    List<Seat> toEntityList(List<SeatDTO> seatDTOs);
 }

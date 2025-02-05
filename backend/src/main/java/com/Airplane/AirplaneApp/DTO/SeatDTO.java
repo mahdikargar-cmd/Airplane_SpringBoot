@@ -1,19 +1,19 @@
 package com.Airplane.AirplaneApp.DTO;
 
-import lombok.Data;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+import lombok.*;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class SeatDTO {
+    private Long id;
+    private Long flightId;
     private String seatNumber;
-    private boolean available;
-    private String seatType;
-    private String position;  // "LEFT" or "RIGHT"
     private Integer rowNumber;
-    private char columnLetter; // Add this field
+    private String columnLetter;
+    private String position;
+    private String seatType;
+    private Boolean available;
+    private Boolean booked;
 }

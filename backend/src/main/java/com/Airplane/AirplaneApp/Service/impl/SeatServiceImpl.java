@@ -1,69 +1,81 @@
 package com.Airplane.AirplaneApp.Service.impl;
 
+import com.Airplane.AirplaneApp.DTO.FlightDTO;
 import com.Airplane.AirplaneApp.DTO.SeatDTO;
 import com.Airplane.AirplaneApp.Entity.Seat;
+import com.Airplane.AirplaneApp.Exception.ConcurrentBookingException;
 import com.Airplane.AirplaneApp.Exception.ResourceNotFoundException;
 import com.Airplane.AirplaneApp.Mapper.SeatMapper;
 import com.Airplane.AirplaneApp.Repository.SeatRepository;
+import com.Airplane.AirplaneApp.Service.FlightService;
 import com.Airplane.AirplaneApp.Service.SeatService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class SeatServiceImpl implements SeatService {
     private final SeatRepository seatRepository;
     private final SeatMapper seatMapper;
+    private final FlightService flightService;
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<SeatDTO> getSeatsForFlight(Long flightId) {
-        List<Seat> seats = seatRepository.findByFlight_FlightId(flightId);
-        return seats.stream()
-                .map(seatMapper::toDTO)
-                .collect(Collectors.toList());
-    }
+    @Transactional
+    public SeatDTO createAndBookSeat(Long flightId, String seatNumber) {
+        FlightDTO flightDTO = flightService.getFlight(flightId);
+        if (flightDTO == null) {
+            throw new ResourceNotFoundException("Flight not found with id: " + flightId);
+        }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<SeatDTO> getAvailableSeatsForFlight(Long flightId) {
-        List<Seat> availableSeats = seatRepository.findByFlight_FlightIdAndAvailable(flightId, true);
-        return availableSeats.stream()
-                .map(seatMapper::toDTO)
-                .collect(Collectors.toList());
+        SeatDTO seatDTO = new SeatDTO();
+        seatDTO.setFlightId(flightId);
+        seatDTO.setSeatNumber(seatNumber);
+        seatDTO.setAvailable(false);
+        seatDTO.setBooked(true);
+
+        return createSeat(seatDTO);
     }
 
     @Override
     @Transactional
-    public SeatDTO bookSeat(Long flightId, String seatNumber) {
-        Seat seat = seatRepository.findByFlight_FlightIdAndSeatNumber(flightId, seatNumber)
-                .orElseThrow(() -> new ResourceNotFoundException("Seat not found: " + seatNumber));
+    public SeatDTO createSeat(SeatDTO seatDTO) {
+        Seat seat = seatMapper.toEntity(seatDTO);
+        seat.setAvailable(seatDTO.getAvailable() != null ? seatDTO.getAvailable() : false);
+        seat.setBooked(seatDTO.getBooked() != null ? seatDTO.getBooked() : false);
 
-        if (!seat.isAvailable()) {
-            throw new IllegalStateException("This seat is already booked!");
-        }
-
-        seat.setAvailable(false);
-        seat = seatRepository.save(seat);
-        return seatMapper.toDTO(seat);
+        Seat savedSeat = seatRepository.save(seat);
+        return seatMapper.toDTO(savedSeat);
     }
 
     @Override
     @Transactional
-    public SeatDTO updateSeatAvailability(Long flightId, String seatNumber, boolean available) {
-        Seat seat = seatRepository.findByFlight_FlightIdAndSeatNumber(flightId, seatNumber)
-                .orElseThrow(() -> new ResourceNotFoundException("Seat not found: " + seatNumber));
+    public void releaseSeat(Long seatId) throws ConcurrentBookingException {
+        try {
+            Seat seat = seatRepository.findById(seatId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Seat not found with id: " + seatId));
 
-        if (seat.isAvailable() == available) {
-            throw new IllegalStateException("Seat is already in the desired state!");
+            seat.setAvailable(true);
+            seat.setBooked(false);
+            seatRepository.save(seat);
+        } catch (OptimisticLockingFailureException ex) {
+            throw new ConcurrentBookingException("Unable to release seat due to concurrent modification.");
         }
+    }
 
-        seat.setAvailable(available);
-        seat = seatRepository.save(seat);
+    @Override
+    @Transactional(readOnly = true)
+    public SeatDTO getSeat(Long id) {
+        Seat seat = seatRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Seat not found with id: " + id));
         return seatMapper.toDTO(seat);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<SeatDTO> getSeatsByFlight(Long flightId) {
+        return seatMapper.toDTOList(seatRepository.findByFlightId(flightId));
     }
 }

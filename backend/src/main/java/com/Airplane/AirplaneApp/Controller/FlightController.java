@@ -28,7 +28,12 @@
                 FlightDTO createdFlight = flightService.createFlight(flightDTO);
                 return ResponseEntity.status(HttpStatus.CREATED).body(createdFlight);
             }
-
+            @GetMapping("/{id}/seats")
+            public ResponseEntity<Integer> getAircraftSeats(@PathVariable Long id) {
+                FlightDTO flight = flightService.getFlight(id);
+                Integer seats = flight.getAircraft().getCapacity();
+                return ResponseEntity.ok(seats);
+            }
             @GetMapping("/{id}")
             public ResponseEntity<FlightDTO> getFlight(@PathVariable Long id) {
                 return ResponseEntity.ok(flightService.getFlight(id));
@@ -37,6 +42,21 @@
             @GetMapping("/number/{flightNumber}")
             public ResponseEntity<FlightDTO> getFlightByNumber(@PathVariable String flightNumber) {
                 return ResponseEntity.ok(flightService.getFlightByNumber(flightNumber));
+            }
+            @GetMapping("/routes/{id}")
+            public ResponseEntity<Map<String, Object>> getFlightDetailsForBooking(@PathVariable Long id) {
+                FlightDTO flight = flightService.getFlight(id);
+                Map<String, Object> response = new HashMap<>();
+                response.put("flightNumber", flight.getFlightNumber());
+                response.put("departureAirportName", flight.getDepartureAirport().getName());
+                response.put("arrivalAirportName", flight.getArrivalAirport().getName());
+                response.put("scheduledDepartureTime", flight.getScheduledDepartureTime());
+                response.put("scheduledArrivalTime", flight.getScheduledArrivalTime());
+                response.put("basePrice", flight.getBasePrice());
+                response.put("capacity", flight.getAircraft().getCapacity());
+                response.put("status", flight.getStatus());
+
+                return ResponseEntity.ok(response);
             }
 
             @GetMapping("/search")

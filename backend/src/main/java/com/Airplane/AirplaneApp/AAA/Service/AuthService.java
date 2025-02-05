@@ -17,6 +17,7 @@
         private final JwtUtil jwtUtil;
         private final AuthenticationManager authenticationManager;
 
+
         public AuthService(UserRepository userRepository,
                            PasswordEncoder passwordEncoder,
                            JwtUtil jwtUtil,
@@ -38,11 +39,15 @@
         }
 
         public AuthResponse login(String username, String password) {
-            authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(username, password)
-            );
+            try {
+                authenticationManager.authenticate(
+                        new UsernamePasswordAuthenticationToken(username, password)
+                );
 
-            String token = jwtUtil.generateToken(username);
-            return new AuthResponse(token, username);
+                String token = jwtUtil.generateToken(username);
+                return new AuthResponse(token, username);
+            } catch (Exception e) {
+                throw new RuntimeException("Invalid username or password");
+            }
         }
     }

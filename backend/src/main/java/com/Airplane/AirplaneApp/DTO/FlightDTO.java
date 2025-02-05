@@ -1,12 +1,10 @@
 package com.Airplane.AirplaneApp.DTO;
 
 import com.Airplane.AirplaneApp.Entity.FlightStatus;
-import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
@@ -16,16 +14,17 @@ public class FlightDTO {
     private Long flightId;
     private String flightNumber;
     private Long aircraftId;
-    @NotNull(message = "Departure Airport ID is required")
     private Long departureAirportId;
-
-    @NotNull(message = "Arrival Airport ID is required")
     private Long arrivalAirportId;
+
+    private AircraftDTO aircraft = new AircraftDTO(); // Initialize with empty object
+    private AirportDTO departureAirport = new AirportDTO(); // Initialize with empty object
+    private AirportDTO arrivalAirport = new AirportDTO(); // Initialize with empty object
 
     private LocalDateTime scheduledDepartureTime;
     private LocalDateTime scheduledArrivalTime;
-    private FlightStatus status;
-    private BigDecimal basePrice;
+    private FlightStatus status = FlightStatus.SCHEDULED; // Default value
+    private double basePrice;
     private String gate;
     private String remarks;
 }

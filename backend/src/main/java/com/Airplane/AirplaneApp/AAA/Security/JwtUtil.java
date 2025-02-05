@@ -3,19 +3,29 @@ package com.Airplane.AirplaneApp.AAA.Security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.spec.SecretKeySpec;
 import java.security.Key;
+import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 @Component
 public class JwtUtil {
-    private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+
+    @Value("${jwt.secret}")
+    private String secretKey;  // مقدار کلید JWT از application.properties
+
+    private final Key key;
     private final long jwtExpiration = 1000 * 60 * 60 * 10; // 10 hours
 
+    public JwtUtil(@Value("${jwt.secret}") String secretKey) {
+        byte[] decodedKey = Base64.getDecoder().decode(secretKey);
+        this.key = new SecretKeySpec(decodedKey, SignatureAlgorithm.HS256.getJcaName());
+    }
     public String generateToken(String username) {
         Map<String, Object> claims = new HashMap<>();
         return createToken(claims, username);

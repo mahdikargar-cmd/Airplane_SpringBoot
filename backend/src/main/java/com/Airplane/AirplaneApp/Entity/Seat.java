@@ -1,66 +1,46 @@
 package com.Airplane.AirplaneApp.Entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+import lombok.*;
 
 @Entity
-@Table(name = "seats")
 @Data
-@NoArgsConstructor(force = true)
+@NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Seat {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(nullable = false)
-    private String seatNumber;
-
-    @Column(nullable = false)
-    private boolean available;
-
-    @Column(nullable = false)
-    private String seatType;
-
-    @Column(nullable = true)
-    private String position;
-
-    @Column(nullable = false)
-    private String status;
-
-    @Column(nullable = false)
-    private Integer rowNumber;
-
-    @Column(nullable = false)
-    private char columnLetter;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "aircraft_id", nullable = false)
-    private Aircraft aircraft;
-
-    @ManyToOne(fetch = FetchType.LAZY)
+    @Version  // Add optimistic locking
+    private Long version;
+    @ManyToOne
     @JoinColumn(name = "flight_id", nullable = false)
     private Flight flight;
 
-    // Sanitize string fields before setting them
-    public void setSeatNumber(String seatNumber) {
-        this.seatNumber = sanitizeString(seatNumber);
+    @Column(name = "status")
+    private String status = "AVAILABLE";
+
+    private String seatNumber;
+    private Integer rowNumber;
+    private String columnLetter;
+    private String position; // WINDOW, MIDDLE, AISLE
+    private String seatType; // ECONOMY, BUSINESS, FIRST_CLASS
+    private Boolean available;
+    private Boolean booked;
+
+    public enum SeatStatus {
+        AVAILABLE,
+        BOOKED,
+        RESERVED
     }
 
-    public void setSeatType(String seatType) {
-        this.seatType = sanitizeString(seatType);
+    // Manually add getters if Lombok is not generating them
+    public Boolean isAvailable() {
+        return available;
     }
 
-    public void setPosition(String position) {
-        this.position = sanitizeString(position);
-    }
-
-    private String sanitizeString(String input) {
-        if (input == null) {
-            return null;
-        }
-        return input.replaceAll("\0", ""); // Remove null bytes
+    public Boolean isBooked() {
+        return booked;
     }
 }

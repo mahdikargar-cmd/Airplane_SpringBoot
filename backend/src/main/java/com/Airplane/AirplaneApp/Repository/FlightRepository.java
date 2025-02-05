@@ -13,7 +13,6 @@ import java.util.Optional;
 public interface FlightRepository extends JpaRepository<Flight, Long> {
     Optional<Flight> findByFlightNumber(String flightNumber);
 
-    // تغییر این متد
     List<Flight> findByDepartureAirport_LocationCityAndArrivalAirport_LocationCity(
             String departureCity, String arrivalCity);
 

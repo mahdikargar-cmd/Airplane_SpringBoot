@@ -51,17 +51,21 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/swagger-ui/**").permitAll()
                         .requestMatchers("/v3/api-docs/**").permitAll()
-
-                        // ✨ Allow all flight search related endpoints without authentication
+                        .requestMatchers("/api/seats/**").permitAll()
                         .requestMatchers(
                                 "/api/flights/search",
+/*
                                 "/api/flights/routes/**",
+*/
                                 "/api/flights/routes/origins",
                                 "/api/flights/routes/destinations",
-                                "/api/flights/routes/search"
-                        ).permitAll()
+                                "/api/flights/routes/search",
+                                "/api/flights/{id}",
+                                "/api/flights/**"
+                        ).permitAll()  // مسیرهای عمومی باید قبل از `anyRequest()` قرار گیرند
+                        .requestMatchers("/api/flights/routes/**").authenticated() // نیاز به احراز هویت
 
-                        .anyRequest().authenticated()
+                        .anyRequest().authenticated()  // دسترسی به مسیرهای باقی‌مانده فقط با احراز هویت
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -71,6 +75,8 @@ public class SecurityConfig {
 
         return http.build();
     }
+
+
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();

@@ -42,6 +42,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             }
 
             jwt = authHeader.substring(7);
+
+            // بررسی ساختار JWT قبل از پردازش
+            if (!jwt.contains(".") || jwt.split("\\.").length != 3) {
+                logger.error("Invalid JWT format received: {}", jwt);
+                filterChain.doFilter(request, response);
+                return;
+            }
+
             username = jwtUtil.extractUsername(jwt);
 
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -53,6 +61,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                             null,
                             userDetails.getAuthorities()
                     );
+                    if (!jwtUtil.validateToken(jwt)) {
+                        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired token");
+                        return;
+                    }
+
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
@@ -65,4 +78,5 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(request, response);
     }
+
 }
