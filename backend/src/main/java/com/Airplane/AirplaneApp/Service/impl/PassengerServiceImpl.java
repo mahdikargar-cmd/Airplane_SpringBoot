@@ -19,17 +19,55 @@ public class PassengerServiceImpl implements PassengerService {
 
     @Override
     public PassengerDTO addPassenger(PassengerDTO passengerDTO) {
-        if (passengerRepository.existsByNationalCode(passengerDTO.getNationalCode())) {
-            throw new RuntimeException("Passenger with this national code already exists");
-        }
-        if (passengerDTO.getPassportNumber() != null &&
-                passengerRepository.existsByPassportNumber(passengerDTO.getPassportNumber())) {
-            throw new RuntimeException("Passenger with this passport number already exists");
+        // Validate input
+        if (passengerDTO == null) {
+            throw new IllegalArgumentException("Passenger DTO cannot be null");
         }
 
+        // Validate required fields
+        validatePassengerDTO(passengerDTO);
+
+        // Check for existing passengers
+        if (passengerRepository.existsByNationalCode(passengerDTO.getNationalCode())) {
+            throw new RuntimeException("Passenger with national code " +
+                    passengerDTO.getNationalCode() + " already exists");
+        }
+
+        // Only check passport number if it's provided
+        if (passengerDTO.getPassportNumber() != null &&
+                passengerRepository.existsByPassportNumber(passengerDTO.getPassportNumber())) {
+            throw new RuntimeException("Passenger with passport number " +
+                    passengerDTO.getPassportNumber() + " already exists");
+        }
+
+        // Map DTO to entity and save
         Passenger passenger = PassengerMapper.mapToPassengerEntity(passengerDTO);
-        passenger = passengerRepository.save(passenger);
-        return PassengerMapper.mapToPassengerDTO(passenger);
+
+        try {
+            passenger = passengerRepository.save(passenger);
+            return PassengerMapper.mapToPassengerDTO(passenger);
+        } catch (Exception e) {
+            throw new RuntimeException("Error saving passenger: " + e.getMessage(), e);
+        }
+    }
+
+    // Helper method to validate required fields
+    private void validatePassengerDTO(PassengerDTO passengerDTO) {
+        if (passengerDTO.getFirstName() == null || passengerDTO.getFirstName().trim().isEmpty()) {
+            throw new IllegalArgumentException("First name is required");
+        }
+        if (passengerDTO.getLastName() == null || passengerDTO.getLastName().trim().isEmpty()) {
+            throw new IllegalArgumentException("Last name is required");
+        }
+        if (passengerDTO.getNationalCode() == null || passengerDTO.getNationalCode().trim().isEmpty()) {
+            throw new IllegalArgumentException("National code is required");
+        }
+        if (passengerDTO.getPhoneNumber() == null || passengerDTO.getPhoneNumber().trim().isEmpty()) {
+            throw new IllegalArgumentException("Phone number is required");
+        }
+        if (passengerDTO.getEmail() == null || passengerDTO.getEmail().trim().isEmpty()) {
+            throw new IllegalArgumentException("Email is required");
+        }
     }
 
     @Override

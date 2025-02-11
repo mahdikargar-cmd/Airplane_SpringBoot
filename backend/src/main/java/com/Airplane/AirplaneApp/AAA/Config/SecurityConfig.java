@@ -45,27 +45,29 @@ public class SecurityConfig {
                     config.setAllowedOrigins(List.of("http://localhost:3000"));
                     config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
                     config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+                    config.setExposedHeaders(List.of("Authorization"));
                     return config;
                 }))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/v3/api-docs",
+                                "/v3/api-docs/**",
+                                "/v3/api-docs.yaml",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
+                        ).permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/swagger-ui/**").permitAll()
-                        .requestMatchers("/v3/api-docs/**").permitAll()
                         .requestMatchers("/api/seats/**").permitAll()
                         .requestMatchers(
                                 "/api/flights/search",
-/*
-                                "/api/flights/routes/**",
-*/
                                 "/api/flights/routes/origins",
                                 "/api/flights/routes/destinations",
                                 "/api/flights/routes/search",
                                 "/api/flights/{id}",
                                 "/api/flights/**"
-                        ).permitAll()  // مسیرهای عمومی باید قبل از `anyRequest()` قرار گیرند
-                        .requestMatchers("/api/flights/routes/**").authenticated() // نیاز به احراز هویت
-
-                        .anyRequest().authenticated()  // دسترسی به مسیرهای باقی‌مانده فقط با احراز هویت
+                        ).permitAll()
+                        .requestMatchers("/api/flights/routes/**").authenticated()
+                        .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -75,8 +77,6 @@ public class SecurityConfig {
 
         return http.build();
     }
-
-
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();

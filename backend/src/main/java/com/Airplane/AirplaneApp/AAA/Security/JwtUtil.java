@@ -17,7 +17,6 @@ import java.util.Map;
 public class JwtUtil {
 
     @Value("${jwt.secret}")
-    private String secretKey;  // مقدار کلید JWT از application.properties
 
     private final Key key;
     private final long jwtExpiration = 1000 * 60 * 60 * 10; // 10 hours

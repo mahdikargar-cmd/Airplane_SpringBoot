@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
-@NoArgsConstructor // این را اضافه کنید
+@NoArgsConstructor
 public class AircraftDTO {
     private Long aircraftId;
     private String model;
@@ -15,7 +15,7 @@ public class AircraftDTO {
     private String registrationNumber;
     private Integer yearOfManufacture;
     private String status;
-    private AircraftDTO aircraft; // اضافه کردن این فیلد
+    private AircraftDTO aircraft;
 
     public AircraftDTO(Long aircraftId, String model, String manufacturer, Integer capacity, String registrationNumber, Integer yearOfManufacture, String status) {
     }
